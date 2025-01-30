@@ -22,3 +22,9 @@ jobs:
 
         - name: Run tests
           run: npm test
+        
+        - name: print secret file
+          run: echo ${{secrets.test}}
+        
+        - name: print env variable
+          run: echo ${{env.GITHUB_REPOSITORY}}
