@@ -24,7 +24,7 @@ jobs:
           run: npm test
         
         - name: print secret file
-          run: echo ${{secrets.test}}
+          run: echo ${{secrets.TEST}}
         
         - name: print env variable
-          run: echo ${{env.GITHUB_REPOSITORY}}
+          run: echo "repo=${env.GITHUB_REPOSITORY}"
