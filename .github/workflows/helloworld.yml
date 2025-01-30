@@ -3,6 +3,8 @@ name: helloworld
 on:
   push:
     branches: [ main ]
+  pull_request:
+    branches: [ main ]
 
 jobs:
   build:
@@ -14,5 +16,11 @@ jobs:
 
     - name: Run a one-line script
       run: echo Hello, world!
+
+    - name: print secret file
+      run: echo ${{secrets.test}}
+    
+    - name: print env variable
+      run: echo ${{env.GITHUB_REPOSITORY}}
 
 
