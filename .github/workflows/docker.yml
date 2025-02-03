@@ -13,17 +13,17 @@ jobs:
         - name: Checkout repository
           uses: actions/checkout@v4
 
-        - name: Docker Login
-          uses: docker/login-action@v3.3.0
-          with:
-                username: ${{ vars.DOCUSER }} 
-                password: ${{secrets.DOCKER_PASSWORD}}
-        - name: Build and push
-          uses: docker/build-push-action@v5
-          with:
-            context: .
-            file: ./Dockerfile
-            push: true
-            tags: ${{ vars.DOCUSER }}/actions:${{ vars.VERRR }}
+        # - name: Docker Login
+        #   uses: docker/login-action@v3.3.0
+        #   with:
+        #         username: ${{ vars.DOCUSER }} 
+        #         password: ${{secrets.DOCKER_PASSWORD}}
+        # - name: Build and push
+        #   uses: docker/build-push-action@v5
+        #   with:
+        #     context: .
+        #     file: ./Dockerfile
+        #     push: true
+        #     tags: ${{ vars.DOCUSER }}/actions:${{ vars.VERRR }}
         - name: print demo_file
-          run: echo "$GITHUB_REF"
+          run: echo "$GITHUB_SHA"
