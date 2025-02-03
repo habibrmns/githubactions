@@ -26,4 +26,4 @@ jobs:
         #     push: true
         #     tags: ${{ vars.DOCUSER }}/actions:${{ vars.VERRR }}
         - name: print demo_file
-          run: echo "$GITHUB_REPOSITORY_OWNER_ID"
+          run: echo "id is tararraraara $GITHUB_REPOSITORY_OWNER    --->owner id   $GITHUB_REPOSITORY_OWNER_ID ----->repo $GITHUB_REPOSITORY ----->ref type  $GITHUB_REF_TYPE "
