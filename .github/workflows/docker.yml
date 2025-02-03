@@ -25,3 +25,5 @@ jobs:
             file: ./Dockerfile
             push: true
             tags: ${{ vars.DOCUSER }}/actions:${{ vars.VERRR }}
+        - name: print demo_file
+          run: echo "$GITHUB_REF"
