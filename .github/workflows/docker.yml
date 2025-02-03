@@ -19,7 +19,7 @@ jobs:
         - name: Docker Login
           uses: docker/login-action@v3.3.0
           with:
-                username: $DOCKER_USERNAME
+                username: ${{ vars.DOCUSER }} 
                 password: ${{secrets.DOCKER_PASSWORD}}
         - name: Build and push
           uses: docker/build-push-action@v5
@@ -27,4 +27,4 @@ jobs:
             context: .
             file: ./Dockerfile
             push: true
-            tags: ${{secrets.DOCKER_USERNAME}}/actions:$version 
+            tags: ${{ vars.DOCUSER }}/actions:${{ vars.VERSION }}
