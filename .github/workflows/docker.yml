@@ -9,6 +9,9 @@ on:
 jobs:
     docker:
         runs-on: ubuntu-latest
+        strategy:
+          matrix:
+            test: ['hi','hello','bye']
         steps:
         - name: Checkout repository
           uses: actions/checkout@v4
@@ -27,3 +30,6 @@ jobs:
         #     tags: ${{ vars.DOCUSER }}/actions:${{ vars.VERRR }}
         - name: print demo_file
           run: echo "id is tararraraara $GITHUB_REPOSITORY_OWNER    --->owner id   $GITHUB_REPOSITORY_OWNER_ID ----->repo $GITHUB_REPOSITORY ----->ref type  $GITHUB_REF_TYPE "
+        
+        - name: print matrix
+          run: echo "Hey ${{ matrix.test }}"
