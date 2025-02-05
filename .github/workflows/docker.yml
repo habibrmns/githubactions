@@ -8,10 +8,11 @@ on:
 
 jobs:
     docker:
-        runs-on: ubuntu-latest
+        runs-on: ${{ matrix.os }}
         strategy:
           matrix:
             test: ['hi','hello','bye']
+            os: [ubuntu-latest, windows-latest, macOS-latest]
         steps:
         - name: Checkout repository
           uses: actions/checkout@v4
