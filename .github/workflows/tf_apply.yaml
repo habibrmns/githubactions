@@ -1,0 +1,55 @@
+name: Reusable Terraform Apply
+
+permissions:
+  id-token: write
+  contents: read
+
+on:
+  workflow_call:
+    inputs:
+      stack:
+        required: true
+        type: string
+      environment:
+        required: true
+        type: string
+      terraform_version:
+        default: "1.6.6"
+        type: string
+
+jobs:
+  apply:
+    runs-on: ubuntu-latest
+
+  
+    environment: ${{ inputs.environment }}
+
+    env:
+      ARM_CLIENT_ID: ${{ vars.AZURE_CLIENT_ID }}
+      ARM_TENANT_ID: ${{ vars.AZURE_TENANT_ID }}
+      ARM_SUBSCRIPTION_ID: ${{ vars.AZURE_SUBSCRIPTION_ID }}
+
+    defaults:
+      run:
+        shell: bash
+        working-directory: ${{ inputs.stack }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: ${{ inputs.terraform_version }}
+
+      - name: Terraform Init
+        run: |
+          terraform init \
+            -input=false \
+            -backend-config=environments/backend-${{ inputs.environment }}.tfvars
+
+      - name: Terraform Apply
+        run: |
+          terraform apply \
+            -input=false \
+            -auto-approve \
+            -var-file=environments/${{ inputs.environment }}.tfvars
