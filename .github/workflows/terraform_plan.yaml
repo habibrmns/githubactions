@@ -1,64 +1,97 @@
 name: Terraform Plan
 
 on:
-  workflow_call:
-    inputs:
-      tf_working_dir:
-        required: true
-        type: string
+  pull_request:
+  push:
+    branches: [ main ]
 
-
-      environment:
-        required: true
-        type: string
-
-      
-      backend_config:
-        required: false
-        type: string
-
-  secrets:
-    ARM_CLIENT_ID:
-      required: true
-    ARM_CLIENT_SECRET:
-      required: true
-    ARM_SUBSCRIPTION_ID:
-      required: true
-    ARM_TENANT_ID:
-      required: true
-  
 jobs:
-  terraform-plan:
+  detect-stacks:
+    name: Detect Terraform stacks
     runs-on: ubuntu-latest
-    environment: ${{ inputs.environment }}
+    outputs:
+      stacks: ${{ steps.detect.outputs.stacks }}
+      env: ${{ steps.env.outputs.env }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Detect environment from tfvars
+        id: env
+        run: |
+          ENV="dev"
+
+          if git diff --name-only origin/main...HEAD | grep -q "environments/prod.tfvars"; then
+            ENV="prod"
+          elif git diff --name-only origin/main...HEAD | grep -q "environments/qa.tfvars"; then
+            ENV="qa"
+          elif git diff --name-only origin/main...HEAD | grep -q "environments/dev.tfvars"; then
+            ENV="dev"
+          fi
+
+          echo "env=$ENV" >> $GITHUB_OUTPUT
+
+      - name: Detect stacks
+        id: detect
+        run: |
+          STACKS=()
+
+          for dir in $(ls -d */); do
+            dir=${dir%/}
+
+            if [ "$dir" = "modules" ]; then
+              continue
+            fi
+
+            if [ -f "$dir/main.tf" ]; then
+              if git diff --name-only origin/main...HEAD | grep "^$dir/" > /dev/null; then
+                STACKS+=("\"$dir\"")
+              fi
+            fi
+          done
+
+          echo "stacks=[${STACKS[*]}]" >> $GITHUB_OUTPUT
+
+  terraform-plan:
+    name: Terraform Plan
+    needs: detect-stacks
+    if: needs.detect-stacks.outputs.stacks != '[]'
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        stack: ${{ fromJson(needs.detect-stacks.outputs.stacks) }}
 
     defaults:
       run:
         shell: bash
-        working-directory: ${{ inputs.tf_working_dir }}
+        working-directory: ${{ matrix.stack }}
 
     steps:
-    - name: Checkout Repository
-      uses: actions/checkout@v4
-    
-    - name: Setup Terraform
-      uses: hashicorp/setup-terraform@v3
+      - uses: actions/checkout@v4
 
-    - name: Terraform Init
-      env:
-        ARM_CLIENT_ID: ${{ secrets.ARM_CLIENT_ID }}
-        ARM_CLIENT_SECRET: ${{ secrets.ARM_CLIENT_SECRET }}
-        ARM_SUBSCRIPTION_ID: ${{ secrets.ARM_SUBSCRIPTION_ID }}
-        ARM_TENANT_ID: ${{ secrets.ARM_TENANT_ID }}
-      run: |
-        terraform init \
-        ${ inputs.backend_config && "--backend-config=" + inputs.backend_config || "" }
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
 
-    
-    - name: Terraform Plan
-      env:
-        ARM_CLIENT_ID: ${{ secrets.ARM_CLIENT_ID }}
-        ARM_CLIENT_SECRET: ${{ secrets.ARM_CLIENT_SECRET }}
-        ARM_SUBSCRIPTION_ID: ${{ secrets.ARM_SUBSCRIPTION_ID }}
-        ARM_TENANT_ID: ${{ secrets.ARM_TENANT_ID }}
-      run: terraform plan -input=false -var-file="environments/${{ inputs.environment }}.tfvars"
+
+      - name: Terraform Init
+        env:
+          ARM_CLIENT_ID: ${{ secrets.ARM_CLIENT_ID }}
+          ARM_CLIENT_SECRET: ${{ secrets.ARM_CLIENT_SECRET }}
+          ARM_SUBSCRIPTION_ID: ${{ secrets.ARM_SUBSCRIPTION_ID }}
+          ARM_TENANT_ID: ${{ secrets.ARM_TENANT_ID }}
+        run: terraform init -input=false
+
+      - name: Terraform Validate
+        run: terraform validate
+
+      - name: Terraform Plan
+        env:
+          ARM_CLIENT_ID: ${{ secrets.ARM_CLIENT_ID }}
+          ARM_CLIENT_SECRET: ${{ secrets.ARM_CLIENT_SECRET }}
+          ARM_SUBSCRIPTION_ID: ${{ secrets.ARM_SUBSCRIPTION_ID }}
+          ARM_TENANT_ID: ${{ secrets.ARM_TENANT_ID }}
+        run: |
+          terraform plan \
+            -input=false \
+            -var-file=environments/${{ needs.detect-stacks.outputs.env }}.tfvars
