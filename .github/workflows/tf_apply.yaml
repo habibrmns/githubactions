@@ -45,7 +45,7 @@ jobs:
         run: |
           terraform init \
             -input=false \
-            -backend-config=environments/backend-${{ inputs.environment }}.tfvars \
+            -backend-config=environments/${{ inputs.environment }}.tfvars \
             -backend-config="key=${{ inputs.stack }}-${{ inputs.environment }}.tfstate"
 
 
