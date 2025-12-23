@@ -1,4 +1,4 @@
-name: Reusable Terraform Apply
+name: Terraform Apply
 
 permissions:
   id-token: write
@@ -14,14 +14,14 @@ on:
         required: true
         type: string
       terraform_version:
-        default: "1.6.6"
         type: string
+        default: "1.6.6"
 
 jobs:
   apply:
     runs-on: ubuntu-latest
 
-  
+    # 🔐 Approval happens here
     environment: ${{ inputs.environment }}
 
     env:
@@ -45,9 +45,10 @@ jobs:
         run: |
           terraform init \
             -input=false \
-            -backend-config=environments/${{ inputs.environment }}.tfvars \
+            -backend-config="resource_group_name=${{ vars.AZURE_BACKEND_RG }}" \
+            -backend-config="storage_account_name=${{ vars.AZURE_BACKEND_SA }}" \
+            -backend-config="container_name=${{ vars.AZURE_BACKEND_CONTAINER }}" \
             -backend-config="key=${{ inputs.stack }}-${{ inputs.environment }}.tfstate"
-
 
       - name: Terraform Apply
         run: |

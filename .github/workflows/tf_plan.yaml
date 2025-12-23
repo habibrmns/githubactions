@@ -1,4 +1,4 @@
-name: Reusable Terraform Plan
+name: Terraform Plan
 
 permissions:
   id-token: write
@@ -14,10 +14,8 @@ on:
         required: true
         type: string
       terraform_version:
-        default: "1.6.6"
         type: string
-    
-
+        default: "1.6.6"
 
 jobs:
   plan:
@@ -27,6 +25,7 @@ jobs:
       ARM_CLIENT_ID: ${{ vars.AZURE_CLIENT_ID }}
       ARM_TENANT_ID: ${{ vars.AZURE_TENANT_ID }}
       ARM_SUBSCRIPTION_ID: ${{ vars.AZURE_SUBSCRIPTION_ID }}
+
     defaults:
       run:
         shell: bash
@@ -44,7 +43,9 @@ jobs:
         run: |
           terraform init \
             -input=false \
-            -backend-config=environments/${{ inputs.environment }}.tfvars \
+            -backend-config="resource_group_name=${{ vars.AZURE_BACKEND_RG }}" \
+            -backend-config="storage_account_name=${{ vars.AZURE_BACKEND_SA }}" \
+            -backend-config="container_name=${{ vars.AZURE_BACKEND_CONTAINER }}" \
             -backend-config="key=${{ inputs.stack }}-${{ inputs.environment }}.tfstate"
 
       - name: Terraform Plan
