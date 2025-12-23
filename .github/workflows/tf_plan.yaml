@@ -24,7 +24,7 @@ on:
 
 jobs:
   plan:
-    runs-on: ubuntu-latest
+
 
     defaults:
       run:
