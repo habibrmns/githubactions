@@ -21,6 +21,8 @@ jobs:
   plan:
     runs-on: ubuntu-latest
 
+    environment: ${{ inputs.backend_env }}
+    
     env:
       ARM_CLIENT_ID: ${{ vars.AZURE_CLIENT_ID }}
       ARM_TENANT_ID: ${{ vars.AZURE_TENANT_ID }}
