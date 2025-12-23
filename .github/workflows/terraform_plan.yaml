@@ -1,0 +1,64 @@
+name: Terraform Plan
+
+on:
+  workflow_call:
+    inputs:
+      tf_working_dir:
+        required: true
+        type: string
+
+
+      environment:
+        required: true
+        type: string
+
+      
+      backend_config:
+        required: false
+        type: string
+
+  secrets:
+    ARM_CLIENT_ID:
+      required: true
+    ARM_CLIENT_SECRET:
+      required: true
+    ARM_SUBSCRIPTION_ID:
+      required: true
+    ARM_TENANT_ID:
+      required: true
+  
+jobs:
+  terraform-plan:
+    runs-on: ubuntu-latest
+    environment: ${{ inputs.environment }}
+
+    defaults:
+      run:
+        shell: bash
+        working-directory: ${{ inputs.tf_working_dir }}
+
+    steps:
+    - name: Checkout Repository
+      uses: actions/checkout@v4
+    
+    - name: Setup Terraform
+      uses: hashicorp/setup-terraform@v3
+
+    - name: Terraform Init
+      env:
+        ARM_CLIENT_ID: ${{ secrets.ARM_CLIENT_ID }}
+        ARM_CLIENT_SECRET: ${{ secrets.ARM_CLIENT_SECRET }}
+        ARM_SUBSCRIPTION_ID: ${{ secrets.ARM_SUBSCRIPTION_ID }}
+        ARM_TENANT_ID: ${{ secrets.ARM_TENANT_ID }}
+      run: |
+        terraform init \
+        ${ inputs.backend_config && "--backend-config=" + inputs.backend_config || "" }
+
+    
+    - name: Terraform Plan
+      env:
+        ARM_CLIENT_ID: ${{ secrets.ARM_CLIENT_ID }}
+        ARM_CLIENT_SECRET: ${{ secrets.ARM_CLIENT_SECRET }}
+        ARM_SUBSCRIPTION_ID: ${{ secrets.ARM_SUBSCRIPTION_ID }}
+        ARM_TENANT_ID: ${{ secrets.ARM_TENANT_ID }}
+      run: terraform plan -input=false -var-file="environments/${{ inputs.environment }}.tfvars"
