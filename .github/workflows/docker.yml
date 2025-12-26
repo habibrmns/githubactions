@@ -1,0 +1,36 @@
+name: docker-pipeline
+
+on:
+    push:
+        branches: [ main ]
+    pull_request:
+        branches: [ main ]
+
+jobs:
+    docker:
+        runs-on: ${{ matrix.os }}
+        strategy:
+          matrix:
+            test: ['hi','hello','bye']
+            os: [ubuntu-latest, windows-latest, macOS-latest]
+        steps:
+        - name: Checkout repository
+          uses: actions/checkout@v4
+
+        # - name: Docker Login
+        #   uses: docker/login-action@v3.3.0
+        #   with:
+        #         username: ${{ vars.DOCUSER }} 
+        #         password: ${{secrets.DOCKER_PASSWORD}}
+        # - name: Build and push
+        #   uses: docker/build-push-action@v5
+        #   with:
+        #     context: .
+        #     file: ./Dockerfile
+        #     push: true
+        #     tags: ${{ vars.DOCUSER }}/actions:${{ vars.VERRR }}
+        - name: print demo_file
+          run: echo "id is tararraraara $GITHUB_REPOSITORY_OWNER    --->owner id   $GITHUB_REPOSITORY_OWNER_ID ----->repo $GITHUB_REPOSITORY ----->ref type  $GITHUB_REF_TYPE "
+        
+        - name: print matrix
+          run: echo "Hey ${{ matrix.test }}"
